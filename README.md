@@ -1,4 +1,4 @@
-# D-PDLP: Distributed Grid-Partitioned Linear Programming Solver
+# D-PDLP: A First-Order LP Solver Accelerated on Multiple GPUs
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![arXiv](https://img.shields.io/badge/arXiv-2601.07628-B31B1B.svg)](https://arxiv.org/pdf/2601.07628)
