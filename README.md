@@ -5,7 +5,7 @@
 
 **D-PDLP** (Distributed PDLP) is a high-performance, distributed implementation of the Primal-Dual Hybrid Gradient (PDHG) algorithm designed for solving massive-scale Linear Programming (LP) problems on multi-GPU systems.
 
-By leveraging 2D Grid Partitioning, D-PDLP scales the first-order PDHG method across GPU clusters, efficiently harnessing the aggregate computational power and memory of multiple devices. This implementation is built upon [cuPDLPx](https://github.com/Lhongpei/cuPDLPx), a GPU-accelerated LP solver described in suggested in [cuPDLPx: A Further Enhanced GPU-Based First-Order Solver for Linear Programming](https://arxiv.org/abs/2507.14051).
+By leveraging 2D Grid Partitioning, D-PDLP scales the first-order PDHG method across GPU clusters, efficiently harnessing the aggregate computational power and memory of multiple devices. This implementation is built upon [cuPDLPx](https://github.com/Lhongpei/cuPDLPx), a GPU-accelerated LP solver described in [cuPDLPx: A Further Enhanced GPU-Based First-Order Solver for Linear Programming](https://arxiv.org/abs/2507.14051).
 
 For a detailed explanation of the methodology, please refer to our paper: [Beyond Single-GPU: Scaling PDLP to Distributed Multi-GPU Systems](https://arxiv.org/pdf/2601.07628).
 
