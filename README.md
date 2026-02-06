@@ -96,6 +96,7 @@ mpirun -n <NUM_GPU> ./build/cupdlpx-dist <MPS_FILE> <OUTPUT_DIR> [OPTIONS]
 | `--eval_freq` | `int` | Termination evaluation frequency | `200` |
 | `--sv_max_iter` | `int` | Max iterations for singular value estimation | `5000` |
 | `--sv_tol` | `float` | Tolerance for singular value estimation | `1e-4` |
+| `--no_presolve` | `flag` | Disable presolve | `enabled` |
 
 ---
 
