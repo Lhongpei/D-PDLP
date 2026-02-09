@@ -115,13 +115,15 @@ Upon successful completion, the solver generates three files in the specified ou
 If you use this software or method in your research, please cite our paper:
 
 ```bibtex
-@article{li2026beyond,
-  title={Beyond Single-GPU: Scaling PDLP to Distributed Multi-GPU Systems},
-  author={Li, Hongpei and Huang, Yicheng and Liu, Huikang and Ge, Dongdong and Ye, Yinyu},
-  journal={arXiv preprint arXiv:2601.07628},
-  year={2026}
+@misc{li2026dpdlpscalingpdlpdistributed,
+      title={D-PDLP: Scaling PDLP to Distributed Multi-GPU Systems}, 
+      author={Hongpei Li and Yicheng Huang and Huikang Liu and Dongdong Ge and Yinyu Ye},
+      year={2026},
+      eprint={2601.07628},
+      archivePrefix={arXiv},
+      primaryClass={math.OC},
+      url={https://arxiv.org/abs/2601.07628}, 
 }
-
 ```
 
 ---
