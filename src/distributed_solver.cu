@@ -432,6 +432,8 @@ static lp_problem_t *permute_lp_problem(const pdhg_parameters_t *params,
                                         const lp_problem_t *original_problem,
                                         int **out_row_perm,
                                         int **out_col_perm) {
+  double t_start = MPI_Wtime();
+
   *out_row_perm =
       (int *)malloc(original_problem->num_constraints * sizeof(int));
   *out_col_perm = (int *)malloc(original_problem->num_variables * sizeof(int));
@@ -450,6 +452,14 @@ static lp_problem_t *permute_lp_problem(const pdhg_parameters_t *params,
 
   lp_problem_t *new_problem =
       permute_problem_return_new(original_problem, row_perm, col_perm);
+
+  double t_end = MPI_Wtime();
+
+  if (params->verbose) {
+    printf("[Timer] Permuting LP Problem took %.3f seconds.\n",
+           t_end - t_start);
+  }
+
   return new_problem;
 }
 
