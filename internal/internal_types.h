@@ -43,6 +43,11 @@ typedef struct {
     int dims[2];       
 } grid_context_t;
 
+typedef struct {
+    MPI_Request *reqs;
+    int num_reqs;
+} big_request_t;
+
 typedef struct
 {
 	int num_variables;

@@ -31,6 +31,7 @@ lp_problem_t* partition_lp_problem(
     int* out_n_start,  
     int* out_m_start 
 );
+
 rescale_info_t* deserialize_rescale_info(const char *buffer);
 void serialize_rescale_info(const rescale_info_t *info, char *buffer);
 size_t get_rescale_info_size(const rescale_info_t *info);
@@ -38,6 +39,24 @@ lp_problem_t* deserialize_lp_problem_from_ptr(const char **ptr_ref);
 void serialize_lp_problem_to_ptr(const lp_problem_t *lp, char **ptr_ref);
 size_t get_lp_problem_size(const lp_problem_t *lp);
 void big_bcast_bytes(void **buffer_ptr, size_t *size_ptr, int root, MPI_Comm comm);
+void big_send_bytes(const void *buffer, size_t size, int dest, MPI_Comm comm);
+void big_recv_bytes(void **buffer_ptr, size_t *size_ptr, int source, MPI_Comm comm);
+big_request_t big_isend_bytes(const void *buffer, size_t size, int dest, MPI_Comm comm);
+void big_wait_bytes(big_request_t *breq, unsigned long long *p_len);
+void distribute_data_bcast_then_partition(
+    const lp_problem_t *working_problem,
+    rescale_info_t *rescale_info,
+    grid_context_t *grid_context,
+    const pdhg_parameters_t *params,
+    lp_problem_t **out_local_lp,
+    rescale_info_t **out_local_resc);
+void distribute_data_partition_then_send(
+    const lp_problem_t *working_problem,
+    rescale_info_t *rescale_info,
+    grid_context_t *grid_context,
+    const pdhg_parameters_t *params,
+    lp_problem_t **out_local_lp,
+    rescale_info_t **out_local_resc);
 void initialize_step_size_and_primal_weight_distributed(
     pdhg_solver_state_t *state,
     const pdhg_parameters_t *params);
