@@ -22,9 +22,8 @@ limitations under the License.
 extern "C" {
 #endif
 
-    cupdlpx_result_t *distributed_optimize(
-        const pdhg_parameters_t *params,
-        const lp_problem_t *original_problem);
+cupdlpx_result_t *distributed_optimize(const pdhg_parameters_t *params,
+                                       const lp_problem_t *original_problem);
 
 #ifdef __cplusplus
 }

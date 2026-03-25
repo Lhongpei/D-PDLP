@@ -116,13 +116,13 @@ If you use this software or method in your research, please cite our paper:
 
 ```bibtex
 @misc{li2026dpdlpscalingpdlpdistributed,
-      title={D-PDLP: Scaling PDLP to Distributed Multi-GPU Systems}, 
+      title={D-PDLP: Scaling PDLP to Distributed Multi-GPU Systems},
       author={Hongpei Li and Yicheng Huang and Huikang Liu and Dongdong Ge and Yinyu Ye},
       year={2026},
       eprint={2601.07628},
       archivePrefix={arXiv},
       primaryClass={math.OC},
-      url={https://arxiv.org/abs/2601.07628}, 
+      url={https://arxiv.org/abs/2601.07628},
 }
 ```
 

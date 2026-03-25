@@ -127,7 +127,7 @@ set(CORE_LINK_LIBS PUBLIC
 
 if(ENABLE_MPI)
     find_package(MPI REQUIRED)
-    add_definitions(-DUSE_MPI) 
+    add_definitions(-DUSE_MPI)
     message(STATUS "MPI is ENABLED")
 else()
     message(STATUS "MPI is DISABLED (Single Node Mode)")
@@ -136,7 +136,7 @@ endif()
 if(ENABLE_MPI AND MPI_FOUND)
     list(APPEND CORE_LINK_LIBS MPI::MPI_CXX)
     include_directories(${MPI_CXX_INCLUDE_PATH})
-    find_library(NCCL_LIB NAMES nccl 
+    find_library(NCCL_LIB NAMES nccl
                  PATHS ${CMAKE_CUDA_IMPLICIT_LINK_DIRECTORIES}
                        $ENV{NCCL_ROOT}/lib
                        /usr/local/cuda/lib64
@@ -196,10 +196,10 @@ if(CUPDLPX_BUILD_CLI)
     if(NOT TARGET cupdlpx_core)
         message(FATAL_ERROR "CUPDLPX_BUILD_CLI=ON requires CUPDLPX_BUILD_STATIC_LIB=ON.")
     endif()
-    
+
     add_executable(cupdlpx_cli src/cli.c)
 
-    target_include_directories(cupdlpx_cli PRIVATE 
+    target_include_directories(cupdlpx_cli PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/internal
     )
@@ -230,28 +230,28 @@ if(CUPDLPX_BUILD_TESTS)
     )
 
     foreach(TEST_SRC ${TEST_SOURCES})
-        get_filename_component(TEST_NAME ${TEST_SRC} NAME_WE) 
-        
+        get_filename_component(TEST_NAME ${TEST_SRC} NAME_WE)
+
         add_executable(${TEST_NAME} ${TEST_SRC})
-        
+
         # Link tests to the core static library
         target_link_libraries(${TEST_NAME} PRIVATE cupdlpx_core)
 
         # Set up test includes
-        target_include_directories(${TEST_NAME} 
+        target_include_directories(${TEST_NAME}
           PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
           PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/internal
         )
-        
+
         # Tests are final executables, they must resolve device symbols
         set_target_properties(${TEST_NAME} PROPERTIES
             RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/tests"
             CUDA_RESOLVE_DEVICE_SYMBOLS ON
         )
-        
+
         # Register with CTest
         add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
-        
+
     endforeach()
 endif()
 
@@ -262,7 +262,7 @@ if (CUPDLPX_BUILD_PYTHON)
     if(NOT TARGET cupdlpx_core)
         message(FATAL_ERROR "CUPDLPX_BUILD_PYTHON=ON requires CUPDLPX_BUILD_STATIC_LIB=ON.")
     endif()
-    
+
     add_subdirectory(python_bindings)
 endif()
 
@@ -282,14 +282,14 @@ else()
             ARCHIVE DESTINATION lib
         )
     endif()
-    
+
     if(TARGET cupdlpx_shared)
         install(TARGETS cupdlpx_shared
             LIBRARY DESTINATION lib
             RUNTIME DESTINATION bin # 'bin' for DLLs on Windows, 'lib' for .so on Linux
         )
     endif()
-    
+
     if(TARGET cupdlpx_cli)
         install(TARGETS cupdlpx_cli
             RUNTIME DESTINATION bin
