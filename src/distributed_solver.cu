@@ -445,8 +445,8 @@ static lp_problem_t *permute_lp_problem(const pdhg_parameters_t *params,
     generate_random_permutation(original_problem->num_variables, col_perm);
     generate_random_permutation(original_problem->num_constraints, row_perm);
   } else if (params->permute_method == BLOCK_RANDOM_PERMUTATION) {
-    generate_block_permutation(original_problem->num_variables, 128, col_perm);
-    generate_block_permutation(original_problem->num_constraints, 128,
+    generate_block_permutation(original_problem->num_variables, params->permute_block_size, col_perm);
+    generate_block_permutation(original_problem->num_constraints, params->permute_block_size,
                                row_perm);
   }
 

@@ -111,6 +111,7 @@ typedef struct {
   partition_method_t partition_method;
   permute_method_t permute_method;
   grid_size_t grid_size;
+  int permute_block_size;
 } pdhg_parameters_t;
 
 typedef struct {

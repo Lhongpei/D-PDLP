@@ -78,6 +78,7 @@ mpirun -n <NUM_GPU> ./build/cupdlpx-dist <MPS_FILE> <OUTPUT_DIR> [OPTIONS]
 | `--grid_size <r>,<c>` | `string` | 2D Grid topology (Rows x Cols) | Auto-detect |
 | `--partition_method` | `string` | Partitioning strategy: `uniform` or `nnz`. | `nnz` |
 | `--permute_method` | `string` | Matrix permutation: `none`, `random`, or `block`. | `none` |
+| `--permute_block_size <size>` | `int` | Block size for `block` permutation method. | `256` |
 
 **Solver Parameters:**
 | Option | Type | Description | Default |

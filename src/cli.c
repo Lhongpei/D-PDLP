@@ -366,6 +366,7 @@ int run_d_pdlpx(int argc, char *argv[]) {
   params.grid_size.row_dims = 0;
   params.grid_size.col_dims = 0;
   params.grid_size.decided = false;
+  params.permute_block_size = 256;
 
   static struct option long_options[] = {
       {"help", no_argument, 0, 'h'},
@@ -389,6 +390,7 @@ int run_d_pdlpx(int argc, char *argv[]) {
       {"grid_size", required_argument, 0, 2001},
       {"partition_method", required_argument, 0, 2002},
       {"permute_method", required_argument, 0, 2003},
+      {"permute_block_size", required_argument, 0, 2004},
       {0, 0, 0, 0}};
 
   // 3. Argument Parsing
@@ -534,6 +536,16 @@ int run_d_pdlpx(int argc, char *argv[]) {
           fprintf(
               stderr,
               "Error: permute_method must be 'none', 'random', or 'block'\n");
+        MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+      }
+    } break;
+    
+    case 2004: // --permute_block_size
+    {
+      params.permute_block_size = atoi(optarg);
+      if (params.permute_block_size <= 0) {
+        if (rank_global == 0)
+          fprintf(stderr, "Error: permute_block_size must be a positive integer.\n");
         MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
       }
     } break;
