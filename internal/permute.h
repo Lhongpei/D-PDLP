@@ -27,11 +27,6 @@ limitations under the License.
 extern "C" {
 #endif
 
-typedef struct {
-  int new_col;
-  double val;
-} permute_tuple_t;
-
 void generate_random_permutation(int n, int *perm);
 
 void permute_problem(lp_problem_t *qp, int *row_perm, int *col_perm);

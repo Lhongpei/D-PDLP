@@ -1,10 +1,21 @@
 #include "permute.h"
 #include <math.h>
 #include <random>
+#include <algorithm>
+#include <vector>
+#include <omp.h>
 
 #ifndef MIN
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #endif
+
+struct permute_tuple_t {
+  int new_col;
+  double val;
+  bool operator<(const permute_tuple_t& other) const {
+    return new_col < other.new_col;
+  }
+};
 
 int cmp_tuples(const void *a, const void *b) {
   return ((permute_tuple_t *)a)->new_col - ((permute_tuple_t *)b)->new_col;
@@ -12,44 +23,33 @@ int cmp_tuples(const void *a, const void *b) {
 
 void col_permute_in_place(int m, int *Ap, int *Aj, double *Ax,
                           const int *old_col_to_new) {
-  int max_row_nnz = 0;
-  for (int i = 0; i < m; i++) {
-    int len = Ap[i + 1] - Ap[i];
-    if (len > max_row_nnz)
-      max_row_nnz = len;
-  }
-
-  permute_tuple_t *buffer =
-      (permute_tuple_t *)malloc(max_row_nnz * sizeof(permute_tuple_t));
-
+  #pragma omp parallel for schedule(dynamic, 1024)
   for (int r = 0; r < m; r++) {
     int start = Ap[r];
     int end = Ap[r + 1];
     int len = end - start;
 
-    if (len == 0)
+    if (len <= 1)
       continue;
+
+    std::vector<permute_tuple_t> local_buffer(len);
 
     for (int k = 0; k < len; k++) {
       int current_idx = start + k;
       int old_col = Aj[current_idx];
 
-      buffer[k].new_col = old_col_to_new[old_col];
-      buffer[k].val = Ax[current_idx];
+      local_buffer[k].new_col = old_col_to_new[old_col];
+      local_buffer[k].val = Ax[current_idx];
     }
 
-    if (len > 1) {
-      qsort(buffer, len, sizeof(permute_tuple_t), cmp_tuples);
-    }
+    std::sort(local_buffer.begin(), local_buffer.end());
 
     for (int k = 0; k < len; k++) {
       int current_idx = start + k;
-      Aj[current_idx] = buffer[k].new_col;
-      Ax[current_idx] = buffer[k].val;
+      Aj[current_idx] = local_buffer[k].new_col;
+      Ax[current_idx] = local_buffer[k].val;
     }
   }
-
-  free(buffer);
 }
 
 void permute_rows_structural(lp_problem_t *qp, const int *row_perm) {
@@ -61,23 +61,32 @@ void permute_rows_structural(lp_problem_t *qp, const int *row_perm) {
   double *new_Ax = (double *)malloc(nnz * sizeof(double));
 
   new_Ap[0] = 0;
-  int current_nz = 0;
 
+  #pragma omp parallel for schedule(static)
   for (int i = 0; i < m; i++) {
     int old_row_idx = row_perm[i];
+    int len = qp->constraint_matrix_row_pointers[old_row_idx + 1] - 
+              qp->constraint_matrix_row_pointers[old_row_idx];
+    new_Ap[i + 1] = len;
+  }
 
+  for (int i = 0; i < m; i++) {
+    new_Ap[i + 1] += new_Ap[i];
+  }
+
+  #pragma omp parallel for schedule(static)
+  for (int i = 0; i < m; i++) {
+    int old_row_idx = row_perm[i];
     int start = qp->constraint_matrix_row_pointers[old_row_idx];
-    int len = qp->constraint_matrix_row_pointers[old_row_idx + 1] - start;
+    int len = new_Ap[i + 1] - new_Ap[i];
+    int dest_offset = new_Ap[i];
 
     if (len > 0) {
-      memcpy(&new_Aj[current_nz], &qp->constraint_matrix_col_indices[start],
+      memcpy(&new_Aj[dest_offset], &qp->constraint_matrix_col_indices[start],
              len * sizeof(int));
-      memcpy(&new_Ax[current_nz], &qp->constraint_matrix_values[start],
+      memcpy(&new_Ax[dest_offset], &qp->constraint_matrix_values[start],
              len * sizeof(double));
-      current_nz += len;
     }
-
-    new_Ap[i + 1] = current_nz;
   }
 
   free(qp->constraint_matrix_row_pointers);
@@ -93,8 +102,11 @@ void permute_double_array(double *arr, int n, const int *perm) {
   if (!arr)
     return;
   double *tmp = (double *)malloc(n * sizeof(double));
+  
+  #pragma omp parallel for schedule(static)
   for (int i = 0; i < n; i++)
     tmp[i] = arr[perm[i]];
+    
   memcpy(arr, tmp, n * sizeof(double));
   free(tmp);
 }
