@@ -169,7 +169,7 @@ distributed_optimize_core(const pdhg_parameters_t *params,
       compute_residual_distributed(state, params->optimality_norm);
       if (state->is_this_major_iteration &&
           state->total_count < 3 * params->termination_evaluation_frequency) {
-        compute_infeasibility_information(state);
+        compute_infeasibility_information_distributed(state);
       }
 
       state->cumulative_time_sec = (double)(MPI_Wtime() - start_time);
