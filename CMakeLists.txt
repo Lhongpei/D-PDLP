@@ -85,7 +85,7 @@ endif()
 
 include(FetchContent)
 
-set(PSLP_VERSION_TAG "v0.0.3")
+set(PSLP_VERSION_TAG "v0.0.8")
 
 FetchContent_Declare(
   pslp

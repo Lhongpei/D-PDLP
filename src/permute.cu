@@ -153,7 +153,8 @@ lp_problem_t *permute_problem_return_new(const lp_problem_t *qp, int *row_perm,
   new_qp->num_variables = qp->num_variables;
   new_qp->num_constraints = qp->num_constraints;
   new_qp->constraint_matrix_num_nonzeros = qp->constraint_matrix_num_nonzeros;
-
+  new_qp->objective_constant = qp->objective_constant;
+  
   int n = qp->num_variables;
   int m = qp->num_constraints;
   int nnz = qp->constraint_matrix_num_nonzeros;

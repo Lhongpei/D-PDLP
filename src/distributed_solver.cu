@@ -182,6 +182,7 @@ distributed_optimize_core(const pdhg_parameters_t *params,
     }
 
     if ((state->is_this_major_iteration || state->total_count == 0)) {
+      sync_replicated_solutions_distributed(state);
       do_restart =
           should_do_adaptive_restart(state, &params->restart_params,
                                      params->termination_evaluation_frequency);

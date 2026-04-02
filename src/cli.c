@@ -16,6 +16,7 @@ limitations under the License.
 
 #include "cupdlpx.h"
 #include "distributed_solver.h"
+#include <cuda_runtime.h>
 #include "mps_parser.h"
 #include "presolve.h"
 #include "solver.h"
@@ -595,8 +596,6 @@ int run_d_pdlpx(int argc, char *argv[]) {
     if (result == NULL) {
       fprintf(stderr, "Solver failed (returned NULL result).\n");
     } else {
-      if (params.verbose)
-        printf("Rank 0: Saving results...\n");
       save_solver_summary(result, output_dir, instance_name);
       save_solution(result->primal_solution, result->num_variables, output_dir,
                     instance_name, "_primal_solution.txt");
@@ -632,6 +631,7 @@ int is_running_under_mpi() {
 }
 
 int main(int argc, char *argv[]) {
+  cudaFree(0);
   if (is_running_under_mpi()) {
     return run_d_pdlpx(argc, argv);
   } else {

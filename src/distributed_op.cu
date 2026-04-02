@@ -309,7 +309,6 @@ void compute_residual_distributed(pdhg_solver_state_t *state,
   double global_primal_obj;
   MPI_Allreduce(&local_primal_obj, &global_primal_obj, 1, MPI_DOUBLE, MPI_SUM,
                 state->grid_context->comm_row);
-
   state->primal_objective_value =
       global_primal_obj / (state->constraint_bound_rescaling *
                            state->objective_vector_rescaling) +
@@ -478,4 +477,34 @@ void compute_infeasibility_information_distributed(pdhg_solver_state_t *state) {
     state->max_dual_ray_infeasibility = 0.0;
     state->dual_ray_objective = 0.0;
   }
+}
+
+void sync_replicated_solutions_distributed(pdhg_solver_state_t *state) {
+    NCCL_CHECK(ncclBcast((void *)state->pdhg_primal_solution, 
+                         state->num_variables, 
+                         ncclDouble, 
+                         0,
+                         state->grid_context->nccl_col, 
+                         0));
+                         
+    NCCL_CHECK(ncclBcast((void *)state->current_primal_solution, 
+                         state->num_variables, 
+                         ncclDouble, 
+                         0, 
+                         state->grid_context->nccl_col, 
+                         0));
+
+    NCCL_CHECK(ncclBcast((void *)state->pdhg_dual_solution, 
+                         state->num_constraints, 
+                         ncclDouble, 
+                         0,
+                         state->grid_context->nccl_row, 
+                         0));
+                         
+    NCCL_CHECK(ncclBcast((void *)state->current_dual_solution, 
+                         state->num_constraints, 
+                         ncclDouble, 
+                         0, 
+                         state->grid_context->nccl_row, 
+                         0));
 }

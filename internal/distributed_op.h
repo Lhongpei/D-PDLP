@@ -28,6 +28,7 @@ void compute_fixed_point_error_distributed(pdhg_solver_state_t *state);
 void compute_residual_distributed(pdhg_solver_state_t *state,
                                   norm_type_t optimality_norm);
 void compute_infeasibility_information_distributed(pdhg_solver_state_t *state);
+void sync_replicated_solutions_distributed(pdhg_solver_state_t *state);
 #ifdef __cplusplus
 }
 #endif
