@@ -66,7 +66,7 @@ cupdlpx_presolve_info_t *pslp_presolve(const lp_problem_t *original_prob, const 
     }
     if (params->verbose)
     {
-        printf("\nRunning presolver (PSLP %s)...\n", PSLP_VERSION);
+        printf("Running presolver (PSLP %s)...\n", PSLP_VERSION);
     }
     clock_t start_time = clock();
 

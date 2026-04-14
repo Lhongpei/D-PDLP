@@ -54,7 +54,8 @@ static void repermute_solution(cupdlpx_result_t *result, int *row_perm,
                                int *col_perm);
 
 cupdlpx_result_t *distributed_optimize(const pdhg_parameters_t *params,
-                                       const lp_problem_t *original_problem) {
+                                       const lp_problem_t *original_problem) 
+{
   pdhg_parameters_t sub_params = *params;
 
   select_valid_grid_size(params, original_problem, &sub_params);
@@ -62,88 +63,86 @@ cupdlpx_result_t *distributed_optimize(const pdhg_parameters_t *params,
   grid_context_t grid_context = initialize_parallel_context(
       sub_params.grid_size.row_dims, sub_params.grid_size.col_dims);
 
-  sub_params.verbose =
-      (grid_context.rank_global == 0) ? params->verbose : false;
+  sub_params.verbose = (grid_context.rank_global == 0) ? params->verbose : false;
 
   cupdlpx_result_t *result = NULL;
-  if (params->permute_method != NO_PERMUTATION) {
-    lp_problem_t *permuted_problem = NULL;
-    int *row_perm = NULL;
-    int *col_perm = NULL;
-    if (grid_context.rank_global == 0) {
-      permuted_problem =
-          permute_lp_problem(params, original_problem, &row_perm, &col_perm);
-    }
-
-    result =
-        distributed_optimize_core(&sub_params, permuted_problem, &grid_context);
-
-    if (grid_context.rank_global == 0) {
-      repermute_solution(result, row_perm, col_perm);
-      if (permuted_problem) {
-        lp_problem_free(permuted_problem);
-      }
-      free(row_perm);
-      free(col_perm);
-    }
-  } else {
-    result =
-        distributed_optimize_core(&sub_params, original_problem, &grid_context);
-  }
-  return result;
-}
-
-static cupdlpx_result_t *
-distributed_optimize_core(const pdhg_parameters_t *params,
-                          const lp_problem_t *original_problem,
-                          grid_context_t *grid_context) {
-  print_initial_info(params, original_problem);
-  print_distributed_params(params);
+  
   const lp_problem_t *working_problem = original_problem;
-
-  rescale_info_t *rescale_info = NULL;
   cupdlpx_presolve_info_t *presolve_info = NULL;
+  lp_problem_t *permuted_problem = NULL;
+  int *row_perm = NULL;
+  int *col_perm = NULL;
+  int is_solved_early = 0;
 
-  int is_solved_during_presolve = 0;
-
-  if (grid_context->rank_global == 0) {
+  if (grid_context.rank_global == 0) {
+    print_initial_info(params, working_problem);
+    print_distributed_params(params);
+  }
+  
+  if (grid_context.rank_global == 0) {
     if (params->presolve) {
       presolve_info = pslp_presolve(original_problem, params);
       if (presolve_info->problem_solved_during_presolve) {
-        is_solved_during_presolve = 1;
+        is_solved_early = 1;
       } else {
         working_problem = presolve_info->reduced_problem;
       }
     }
 
-    if (!is_solved_during_presolve) {
-      rescale_info = rescale_problem(params, working_problem);
+    if (!is_solved_early && params->permute_method != NO_PERMUTATION) {
+      permuted_problem = permute_lp_problem(params, working_problem, &row_perm, &col_perm);
+      working_problem = permuted_problem;
     }
   }
 
-  MPI_Bcast(&is_solved_during_presolve, 1, MPI_INT, 0,
-            grid_context->comm_global);
+  MPI_Bcast(&is_solved_early, 1, MPI_INT, 0, grid_context.comm_global);
 
-  if (is_solved_during_presolve) {
-    if (grid_context->rank_global == 0) {
-      cupdlpx_result_t *result =
-          create_result_from_presolve(presolve_info, original_problem);
-      if (presolve_info)
-        cupdlpx_presolve_info_free(presolve_info);
+  if (is_solved_early) {
+    if (grid_context.rank_global == 0) {
+      result = create_result_from_presolve(presolve_info, original_problem);
+      if (presolve_info) cupdlpx_presolve_info_free(presolve_info);
       pdhg_final_log(result, params);
       return result;
-    } else {
-      return NULL;
     }
+    return NULL;
+  }
+
+  result = distributed_optimize_core(&sub_params, working_problem, &grid_context);
+
+  if (grid_context.rank_global == 0 && result != NULL) {
+    if (params->permute_method != NO_PERMUTATION) {
+      repermute_solution(result, row_perm, col_perm);
+      if (permuted_problem) lp_problem_free(permuted_problem);
+      free(row_perm);
+      free(col_perm);
+    }
+
+    if (params->presolve && presolve_info) {
+      pslp_postsolve(presolve_info, result, original_problem);
+      cupdlpx_presolve_info_free(presolve_info);
+    }
+    
+    pdhg_final_log(result, params);
+  } else if (grid_context.rank_global != 0) {
+      result = NULL; 
+  }
+
+  return result;
+}
+
+static cupdlpx_result_t *
+distributed_optimize_core(const pdhg_parameters_t *params,
+                          const lp_problem_t *working_problem,
+                          grid_context_t *grid_context) 
+{
+  rescale_info_t *rescale_info = NULL;
+  
+  if (grid_context->rank_global == 0) {
+    rescale_info = rescale_problem(params, working_problem);
   }
 
   lp_problem_t *local_working_problem = NULL;
   rescale_info_t *local_rescale_info = NULL;
-
-  // distribute_data_partition_then_send(
-  //     working_problem, rescale_info, grid_context, params,
-  //     &local_working_problem, &local_rescale_info
-  // );
 
   distribute_data_bcast_then_partition(
       working_problem, rescale_info, grid_context, params,
@@ -152,13 +151,12 @@ distributed_optimize_core(const pdhg_parameters_t *params,
   pdhg_solver_state_t *state = initialize_solver_state(
       params, local_working_problem, local_rescale_info);
   state->grid_context = grid_context;
+  
   allreduce_obj_bound_norm(state, params);
-
   rescale_info_free(local_rescale_info);
-
   initialize_step_size_and_primal_weight_distributed(state, params);
-
   compute_residual_distributed(state, params->optimality_norm);
+  
   MPI_Barrier(grid_context->comm_global);
 
   double start_time = MPI_Wtime();
@@ -216,17 +214,13 @@ distributed_optimize_core(const pdhg_parameters_t *params,
     compute_residual_distributed(state, params->optimality_norm);
     display_iteration_stats(state, params->verbose);
   }
-  cupdlpx_result_t *result = NULL;
-  result = create_result_from_state_distributed(state, original_problem);
+
+  cupdlpx_result_t *result = create_result_from_state_distributed(state, working_problem);
+  
   if (grid_context->rank_global == 0) {
-    if (params->presolve && presolve_info) {
-      pslp_postsolve(presolve_info, result, original_problem);
-      cupdlpx_presolve_info_free(presolve_info);
-    }
-    pdhg_final_log(result, params);
-  } else {
-    result = NULL;
+      if (rescale_info) rescale_info_free(rescale_info);
   }
+  
   pdhg_solver_state_free(state);
   return result;
 }

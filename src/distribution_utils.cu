@@ -587,9 +587,7 @@ void distribute_data_bcast_then_partition(const lp_problem_t *working_problem,
   *out_local_lp = partition_lp_problem(current_working_problem, grid_context,
                                        params->partition_method, NULL, NULL);
 
-  if (grid_context->rank_global == 0) {
-    rescale_info_free(current_rescale_info);
-  } else {
+  if (grid_context->rank_global != 0) {
     rescale_info_free(current_rescale_info);
   }
 
@@ -674,8 +672,6 @@ void distribute_data_partition_then_send(const lp_problem_t *working_problem,
       free(prev_buf_lp);
       free(prev_buf_resc);
     }
-
-    rescale_info_free(rescale_info);
   } else {
     char *buf_lp = NULL;
     size_t sz_lp = 0;
@@ -991,5 +987,5 @@ void print_distributed_params(const pdhg_parameters_t *params) {
   }
 
   printf("---------------------------------------------------------------------"
-         "------------------\n\n");
+         "------------------\n");
 }
